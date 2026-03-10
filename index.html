@@ -3,7 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Click The Snake Tail</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>SnakeBreak | Click the Snake Tail Browser Game</title>
+  <meta
+    name="description"
+    content="Play SnakeBreak, a fast browser game where you click the snake tail before time runs out. Play instantly online with no download."
+  />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://elyowcode.github.io/SnakeBreak/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SnakeBreak | Click the Snake Tail Browser Game" />
+  <meta
+    property="og:description"
+    content="Play SnakeBreak online and click the snake tail before time runs out."
+  />
+  <meta property="og:url" content="https://elyowcode.github.io/SnakeBreak/" />
+  <meta property="og:image" content="https://elyowcode.github.io/SnakeBreak/snake_profile.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SnakeBreak | Click the Snake Tail Browser Game" />
+  <meta
+    name="twitter:description"
+    content="Play SnakeBreak online and click the snake tail before time runs out."
+  />
+  <meta name="twitter:image" content="https://elyowcode.github.io/SnakeBreak/snake_profile.png" />
   <style>
     :root {
       --bg1: #0b1f2a;
@@ -28,7 +51,13 @@
       color: var(--ink);
       background: radial-gradient(circle at 20% 20%, #1c4f64 0%, var(--bg1) 45%, #07131a 100%);
       padding: 8px;
-      overflow: hidden;
+      padding:
+        max(8px, env(safe-area-inset-top))
+        max(8px, env(safe-area-inset-right))
+        max(8px, env(safe-area-inset-bottom))
+        max(8px, env(safe-area-inset-left));
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     body.world-2 {
@@ -37,6 +66,7 @@
 
     .game-shell {
       width: min(84vw, 780px);
+      max-width: 100%;
       background: var(--panel);
       border-radius: 14px;
       border: 3px solid #8dc1d3;
@@ -465,6 +495,138 @@
     button:hover {
       filter: brightness(1.08);
     }
+
+    button,
+    select {
+      touch-action: manipulation;
+    }
+
+    @media (max-width: 900px) {
+      .game-shell {
+        width: min(96vw, 780px);
+      }
+
+      .shop-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tail-list {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        display: block;
+      }
+
+      .game-shell {
+        width: 100%;
+        padding: 8px;
+        border-radius: 12px;
+      }
+
+      .top-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .timer,
+      .world-select,
+      .save-controls,
+      .level,
+      .world-badge,
+      .score-row,
+      .status,
+      h1 {
+        grid-column: auto;
+        justify-self: stretch;
+      }
+
+      .timer,
+      .world-select,
+      .level,
+      .world-badge,
+      .status,
+      h1 {
+        text-align: center;
+      }
+
+      h1 {
+        grid-column: 1 / -1;
+        font-size: 1.3rem;
+      }
+
+      .save-controls,
+      .score-row,
+      .status {
+        grid-column: 1 / -1;
+      }
+
+      .save-controls,
+      .score-row,
+      .controls {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .save-controls > *,
+      .score-row > * {
+        flex: 1 1 140px;
+      }
+
+      .level {
+        margin-right: 0;
+      }
+
+      .status {
+        font-size: 0.95rem;
+      }
+
+      .shop-panel {
+        padding: 12px;
+      }
+
+      .shop-title {
+        font-size: 1.5rem;
+        padding-right: 60px;
+      }
+
+      .shop-item {
+        min-height: 120px;
+        font-size: 1.35rem;
+        padding: 18px 14px;
+      }
+
+      .tail-list {
+        grid-template-columns: 1fr;
+      }
+
+      .overlay {
+        gap: 14px;
+      }
+
+      .overlay-text {
+        font-size: clamp(2rem, 10vw, 3rem);
+      }
+
+      .start-btn,
+      .try-btn,
+      .next-btn,
+      button,
+      .pause-top-btn,
+      .shop-btn,
+      .skin-action-btn,
+      .shop-close,
+      .world-badge,
+      .world-select,
+      .saves-select,
+      .timer,
+      .score,
+      .level {
+        min-height: 44px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -559,6 +721,7 @@
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+    const boardEl = document.querySelector(".board");
     const overlayEl = document.getElementById("overlay");
     const overlayScoreEl = document.getElementById("overlayScore");
     const overlayTextEl = document.getElementById("overlayText");
@@ -594,8 +757,12 @@
     const levelEl = document.querySelector(".level");
 
     const cell = 20;
-    const cols = Math.floor(canvas.width / cell);
-    const rows = Math.floor(canvas.height / cell);
+    const DESKTOP_COLS = 36;
+    const DESKTOP_ROWS = 20;
+    const MIN_COLS = 16;
+    const MIN_ROWS = 12;
+    let cols = Math.floor(canvas.width / cell);
+    let rows = Math.floor(canvas.height / cell);
 
     let snake;
     let dir;
@@ -633,6 +800,22 @@
 
     function resetSpeed() {
       moveIntervalMs = 130;
+    }
+
+    function resizeCanvasForViewport() {
+      const boardWidth = Math.max(0, Math.floor(boardEl.clientWidth));
+      if (!boardWidth) return false;
+
+      const nextCols = Math.max(MIN_COLS, Math.min(DESKTOP_COLS, Math.floor(boardWidth / cell)));
+      const nextRows = Math.max(MIN_ROWS, Math.min(DESKTOP_ROWS, Math.round(nextCols / 1.8)));
+      const changed = nextCols !== cols || nextRows !== rows;
+
+      cols = nextCols;
+      rows = nextRows;
+      canvas.width = cols * cell;
+      canvas.height = rows * cell;
+
+      return changed;
     }
 
     function getDefaultProgress() {
@@ -1285,6 +1468,7 @@
     }
 
     function handleClick(event) {
+      event.preventDefault();
       if (gameState !== "playing" || won || timeLeft <= 0) return;
       const pointer = getPointerCell(event);
       const goldenTailSize = getGoldenTailSize();
@@ -1311,6 +1495,16 @@
       won = true;
       statusEl.textContent = "Nice! You hit the same golden square and won.";
       endGame("win");
+    }
+
+    function handleViewportResize() {
+      if (gameState === "playing") {
+        return;
+      }
+
+      const changed = resizeCanvasForViewport();
+      if (!changed) return;
+      showStartScreen();
     }
 
     canvas.addEventListener("pointerdown", handleClick);
@@ -1465,6 +1659,7 @@
       setProgress(selectedSave);
     });
 
+    resizeCanvasForViewport();
     initializeSaves();
     updateSkinButtons();
     drawBlueSnakePreview(tailPreviewCtx3, tailPreviewCanvas3, "#d64545");
@@ -1475,6 +1670,7 @@
     updateWorldVisuals();
     updateScoreText();
     lastMoveAt = performance.now();
+    window.addEventListener("resize", handleViewportResize);
     requestAnimationFrame(gameLoop);
     setInterval(() => {
       if (gameState !== "playing" || won || timeLeft <= 0) return;

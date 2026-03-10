@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://elyowcode.github.io/SnakeBreak/sitemap.xml
