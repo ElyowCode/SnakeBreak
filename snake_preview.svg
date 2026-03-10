@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="640" height="220" viewBox="0 0 640 220">
+  <defs>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <rect width="640" height="220" fill="#f7f7f2"/>
+
+  <!-- Snake body (Google Snake-inspired block style) -->
+  <g filter="url(#soft)">
+    <rect x="80" y="96" width="28" height="28" rx="5" fill="#7CB342"/>
+    <rect x="112" y="96" width="28" height="28" rx="5" fill="#8BC34A"/>
+    <rect x="144" y="96" width="28" height="28" rx="5" fill="#7CB342"/>
+    <rect x="176" y="96" width="28" height="28" rx="5" fill="#8BC34A"/>
+    <rect x="208" y="96" width="28" height="28" rx="5" fill="#7CB342"/>
+    <rect x="240" y="96" width="28" height="28" rx="5" fill="#8BC34A"/>
+    <rect x="272" y="96" width="28" height="28" rx="5" fill="#7CB342"/>
+    <rect x="304" y="96" width="28" height="28" rx="5" fill="#8BC34A"/>
+
+    <!-- Head -->
+    <rect x="336" y="96" width="28" height="28" rx="6" fill="#66BB6A"/>
+    <circle cx="346" cy="106" r="2.4" fill="#1b1b1b"/>
+    <circle cx="354" cy="106" r="2.4" fill="#1b1b1b"/>
+    <path d="M350 115 q4 2 8 0" stroke="#1b1b1b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <text x="40" y="42" font-family="Arial, sans-serif" font-size="24" fill="#2b2b2b">Snake style preview</text>
+  <text x="40" y="70" font-family="Arial, sans-serif" font-size="14" fill="#5a5a5a">Blocky green segments, rounded corners, simple face (Google Snake-inspired)</text>
+</svg>

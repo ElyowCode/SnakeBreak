@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Click The Snake Tail</title>
+  <style>
+    :root {
+      --bg1: #0b1f2a;
+      --bg2: #12384a;
+      --panel: #e9f4f8;
+      --ink: #0f2a36;
+      --snake: #4caf50;
+      --tail: #ffb703;
+      --accent: #1976d2;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at 20% 20%, #1c4f64 0%, var(--bg1) 45%, #07131a 100%);
+      padding: 8px;
+      overflow: hidden;
+    }
+
+    body.world-2 {
+      background: radial-gradient(circle at 20% 20%, #1c4f64 0%, var(--bg1) 45%, #07131a 100%);
+    }
+
+    .game-shell {
+      width: min(84vw, 780px);
+      background: var(--panel);
+      border-radius: 14px;
+      border: 3px solid #8dc1d3;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
+      padding: 10px;
+    }
+
+    .top-row {
+      display: grid;
+      grid-template-columns: auto auto auto 1fr auto auto;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+      letter-spacing: 0.02em;
+      grid-column: 4;
+      justify-self: center;
+    }
+
+    .status {
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+
+    .level {
+      grid-column: 5;
+      justify-self: end;
+      font-weight: 700;
+      color: #0c3f52;
+      background: #bfe6f3;
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-right: 16px;
+    }
+
+    .timer {
+      grid-column: 1;
+      justify-self: start;
+      font-weight: 700;
+      color: #0c3f52;
+      background: #bfe6f3;
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+
+    .world-select {
+      grid-column: 2;
+      justify-self: start;
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #d0edf7;
+      color: #0c3f52;
+      font-weight: 700;
+    }
+
+    .world-badge {
+      grid-column: 6;
+      justify-self: start;
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #d0edf7;
+      color: #0c3f52;
+      font-weight: 700;
+    }
+
+    .saves-select {
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #d0edf7;
+      color: #0c3f52;
+      font-weight: 700;
+    }
+
+    .pause-top-btn {
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 12px;
+      background: #d0edf7;
+      color: #0c3f52;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .save-controls {
+      grid-column: 3;
+      justify-self: start;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .score {
+      font-weight: 700;
+      color: #0c3f52;
+      background: #d0edf7;
+      border: 1px solid #82bfd4;
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+
+    .score-row {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: center;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shop-btn {
+      background: #0c7aa6;
+      color: #ffffff;
+      border: 1px solid #0b6387;
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .shop-modal {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(5, 14, 20, 0.6);
+      z-index: 12;
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    .shop-modal.open {
+      display: grid;
+    }
+
+    .shop-panel {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #f7fbfd 0%, #e4f0f5 100%);
+      border: 2px solid #7eb4ca;
+      border-radius: 10px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+      padding: 16px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shop-screen.hidden {
+      display: none;
+    }
+
+    .shop-top {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 12px;
+      min-height: 52px;
+    }
+
+    .shop-title {
+      margin: 0;
+      font-size: 2rem;
+      color: #123644;
+      text-align: center;
+    }
+
+    .shop-close {
+      position: absolute;
+      right: 0;
+      border: none;
+      border-radius: 999px;
+      background: #1b6d8e;
+      color: #ffffff;
+      font-weight: 700;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 340px));
+      justify-content: center;
+      gap: 18px;
+      margin: auto 0;
+    }
+
+    .shop-item {
+      background: #ffffff;
+      border: 1px solid #a8ccda;
+      border-radius: 10px;
+      padding: 22px 18px;
+      color: #214c5d;
+      font-weight: 700;
+      font-size: 1.85rem;
+      min-height: 170px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      cursor: pointer;
+    }
+
+    .tail-screen {
+      margin: auto 0;
+      width: 100%;
+      text-align: center;
+      color: #123644;
+    }
+
+    .tail-list {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .tail-card {
+      width: 100%;
+      max-width: 170px;
+      margin: 0 auto;
+    }
+
+    .tail-card.primary {
+      margin: 0 auto;
+    }
+
+    .tail-card.secondary {
+      position: static;
+    }
+
+    .tail-card.tertiary {
+      position: static;
+    }
+
+    .tail-card.quaternary {
+      position: static;
+    }
+
+    .tail-name {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #123644;
+    }
+
+    .tail-screen p {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .tail-preview-canvas {
+      width: 100%;
+      max-width: 180px;
+      height: auto;
+      margin: 8px auto 12px;
+      display: block;
+      border: none;
+      background: #ffffff;
+      cursor: pointer;
+    }
+
+    body.world-2 .tail-preview-canvas {
+      background: #ffffff;
+      border-color: transparent;
+    }
+
+    .tail-worth {
+      font-size: 1rem;
+      color: #123644;
+      font-weight: 700;
+    }
+
+    .skin-action-btn {
+      margin-top: 8px;
+      border: none;
+      border-radius: 999px;
+      background: #1b6d8e;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 7px 14px;
+      cursor: pointer;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 2px solid #98c5d4;
+      background: linear-gradient(180deg, #d8eef5 0%, #c7e3ec 100%);
+      display: block;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    body.world-2 .game-shell {
+      background: #efe4d2;
+      border-color: #b49a73;
+    }
+
+    body.world-2 canvas {
+      border-color: #b9a07d;
+      background: linear-gradient(180deg, #e8d8bd 0%, #d9c5a8 100%);
+    }
+
+    .board {
+      position: relative;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 24, 33, 0.55);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      border-radius: 10px;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 24, 33, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      z-index: 20;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 4.2vw, 2.8rem);
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .flash-overlay.hidden {
+      display: none;
+    }
+
+    .overlay-text {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: clamp(2.6rem, 7vw, 4.6rem);
+      text-align: center;
+      padding: 0 16px;
+    }
+
+    .overlay-score {
+      color: #67e08a;
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: -8px;
+    }
+
+    .overlay-btn {
+      border: none;
+      color: #fff;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .start-btn {
+      background: #1e9f3f;
+      font-size: clamp(1.2rem, 2.8vw, 2rem);
+      padding: 16px 48px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .try-btn {
+      background: #1976d2;
+      font-size: 1.1rem;
+      padding: 12px 24px;
+    }
+
+    .next-btn {
+      background: #f59e0b;
+      font-size: 1.1rem;
+      padding: 12px 24px;
+      color: #1f2937;
+    }
+
+    .controls {
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+    }
+
+    button {
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell">
+    <div class="top-row">
+      <div id="timer" class="timer">Time: 30</div>
+      <select id="worldSelect" class="world-select" aria-label="Select world">
+        <option value="1">World 1</option>
+        <option value="2">World 2</option>
+      </select>
+      <div class="save-controls">
+        <select id="savesSelect" class="saves-select" aria-label="Saves">
+          <option value="">Saves</option>
+          <option value="__new__">New Game</option>
+        </select>
+        <button id="pauseBtn" class="pause-top-btn" type="button">Pause</button>
+      </div>
+      <h1>Snake Break</h1>
+      <div class="level">Level 1</div>
+      <button id="worldBadge" class="world-badge" type="button">World 1</button>
+      <div class="score-row">
+        <div id="score" class="score">Golden tails caught: 0</div>
+        <button id="shopBtn" class="shop-btn" type="button">Shop</button>
+      </div>
+      <div id="status" class="status">Click the golden tail to move on to the next level.</div>
+    </div>
+
+    <div class="board">
+      <canvas id="game" width="720" height="400" aria-label="Snake game"></canvas>
+      <div id="overlay" class="overlay hidden">
+        <div id="overlayScore" class="overlay-score"></div>
+        <div id="overlayText" class="overlay-text"></div>
+        <button id="startBtn" class="overlay-btn start-btn" type="button">Start</button>
+        <button id="nextLevelBtn" class="overlay-btn next-btn" type="button">Next level</button>
+        <button id="tryAgainBtn" class="overlay-btn try-btn" type="button">Try Again</button>
+      </div>
+      <div id="shopModal" class="shop-modal" aria-hidden="true">
+        <div class="shop-panel">
+          <div class="shop-top">
+            <h2 id="shopTitle" class="shop-title">Snake Shop</h2>
+            <button id="shopCloseBtn" class="shop-close" type="button">Close</button>
+          </div>
+          <div id="shopMainScreen" class="shop-screen">
+            <div class="shop-grid">
+              <button id="tailSkinsBtn" class="shop-item" type="button">Tail Skins</button>
+              <div class="shop-item">Background Packs</div>
+              <div class="shop-item">Fruit Styles</div>
+              <div class="shop-item">Tools</div>
+            </div>
+          </div>
+          <div id="tailSkinsScreen" class="shop-screen hidden">
+            <div class="tail-screen">
+              <div class="tail-list">
+                <div class="tail-card tertiary">
+                  <h3 class="tail-name">Red snake</h3>
+                  <canvas id="tailPreviewCanvas3" class="tail-preview-canvas" width="180" height="240" aria-label="Red snake skin preview"></canvas>
+                  <button class="skin-action-btn" data-skin="red" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card primary">
+                  <h3 class="tail-name">Blue snake</h3>
+                  <canvas id="tailPreviewCanvas" class="tail-preview-canvas" width="180" height="240" aria-label="Blue snake skin preview"></canvas>
+                  <button class="skin-action-btn" data-skin="blue" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card quaternary">
+                  <h3 class="tail-name">Orange snake</h3>
+                  <canvas id="tailPreviewCanvas4" class="tail-preview-canvas" width="180" height="240" aria-label="Orange snake skin preview"></canvas>
+                  <button class="skin-action-btn" data-skin="orange" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card secondary">
+                  <h3 class="tail-name">Purple snake</h3>
+                  <canvas id="tailPreviewCanvas2" class="tail-preview-canvas" width="180" height="240" aria-label="Blue snake skin preview"></canvas>
+                  <button class="skin-action-btn" data-skin="purple" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="flashOverlay" class="flash-overlay hidden">Not enough Golden tails</div>
+    </div>
+
+    <div class="controls">
+      <span>Tip: click or tap directly on the tail segment.</span>
+      <button id="restart" type="button">Restart</button>
+    </div>
+  </main>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const overlayEl = document.getElementById("overlay");
+    const overlayScoreEl = document.getElementById("overlayScore");
+    const overlayTextEl = document.getElementById("overlayText");
+    const startBtn = document.getElementById("startBtn");
+    const nextLevelBtn = document.getElementById("nextLevelBtn");
+    const tryAgainBtn = document.getElementById("tryAgainBtn");
+    const statusEl = document.getElementById("status");
+    const timerEl = document.getElementById("timer");
+    const worldSelectEl = document.getElementById("worldSelect");
+    const savesSelectEl = document.getElementById("savesSelect");
+    const worldBadgeEl = document.getElementById("worldBadge");
+    const scoreEl = document.getElementById("score");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const shopBtn = document.getElementById("shopBtn");
+    const shopModalEl = document.getElementById("shopModal");
+    const shopCloseBtn = document.getElementById("shopCloseBtn");
+    const shopTitleEl = document.getElementById("shopTitle");
+    const shopMainScreenEl = document.getElementById("shopMainScreen");
+    const tailSkinsScreenEl = document.getElementById("tailSkinsScreen");
+    const tailSkinsBtn = document.getElementById("tailSkinsBtn");
+    const tailPreviewCanvas = document.getElementById("tailPreviewCanvas");
+    const tailPreviewCtx = tailPreviewCanvas.getContext("2d");
+    const tailPreviewCanvas2 = document.getElementById("tailPreviewCanvas2");
+    const tailPreviewCtx2 = tailPreviewCanvas2.getContext("2d");
+    const tailPreviewCanvas3 = document.getElementById("tailPreviewCanvas3");
+    const tailPreviewCtx3 = tailPreviewCanvas3.getContext("2d");
+    const tailPreviewCanvas4 = document.getElementById("tailPreviewCanvas4");
+    const tailPreviewCtx4 = tailPreviewCanvas4.getContext("2d");
+    const skinActionBtns = document.querySelectorAll(".skin-action-btn");
+    const tailPreviewCanvases = [tailPreviewCanvas, tailPreviewCanvas2, tailPreviewCanvas3, tailPreviewCanvas4];
+    const flashOverlayEl = document.getElementById("flashOverlay");
+    const restartBtn = document.getElementById("restart");
+    const levelEl = document.querySelector(".level");
+
+    const cell = 20;
+    const cols = Math.floor(canvas.width / cell);
+    const rows = Math.floor(canvas.height / cell);
+
+    let snake;
+    let dir;
+    let won;
+    let timeLeft;
+    let gameState;
+    let world = 1;
+    let level = 1;
+    let fruits = [];
+    let moveIntervalMs = 130;
+    let lastMoveAt = 0;
+    let nextHuntAt = null;
+    let pendingFruitSpawns = [];
+    let targetFruit = null;
+    let score = 0;
+    let tailHits = 0;
+    let pendingWorldUnlock = false;
+    let selectedGoldenOffset = null;
+    let highlightedGoldenOffsets = new Set();
+    let saves = [];
+    let activeSaveId = null;
+    let shopPausedGame = false;
+    let flashTimerId = null;
+    let ownedSkins = [];
+    let equippedSkin = null;
+
+    const SAVES_KEY = "snake_break_saves_v1";
+    const ACTIVE_SAVE_KEY = "snake_break_active_save_v1";
+    const SKIN_COLORS = {
+      blue: "#3f88d1",
+      purple: "#8a4fd6",
+      red: "#d64545",
+      orange: "#e68a2e"
+    };
+
+    function resetSpeed() {
+      moveIntervalMs = 130;
+    }
+
+    function getDefaultProgress() {
+      return { world: 1, level: 1, score: 0, ownedSkins: [], equippedSkin: null };
+    }
+
+    function createSaveId() {
+      return `save_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
+    }
+
+    function loadSavesFromStorage() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(SAVES_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function writeSavesToStorage() {
+      localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
+      if (activeSaveId) {
+        localStorage.setItem(ACTIVE_SAVE_KEY, activeSaveId);
+      } else {
+        localStorage.removeItem(ACTIVE_SAVE_KEY);
+      }
+    }
+
+    function populateSavesDropdown() {
+      savesSelectEl.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Saves";
+      savesSelectEl.appendChild(placeholder);
+
+      const newGameOption = document.createElement("option");
+      newGameOption.value = "__new__";
+      newGameOption.textContent = "New Game";
+      savesSelectEl.appendChild(newGameOption);
+
+      for (const save of saves) {
+        const option = document.createElement("option");
+        option.value = save.id;
+        option.textContent = save.name;
+        savesSelectEl.appendChild(option);
+      }
+
+      savesSelectEl.value = activeSaveId || "";
+    }
+
+    function setProgress(progress) {
+      world = Number(progress.world) || 1;
+      level = Number(progress.level) || 1;
+      score = Number(progress.score) || 0;
+      ownedSkins = Array.isArray(progress.ownedSkins) ? progress.ownedSkins : [];
+      equippedSkin = typeof progress.equippedSkin === "string" ? progress.equippedSkin : null;
+      levelEl.textContent = `Level ${level}`;
+      updateWorldVisuals();
+      updateWorldDropdownVisibility();
+      updateScoreText();
+      updateSkinButtons();
+      resetSpeed();
+      showStartScreen();
+    }
+
+    function saveActiveProgress() {
+      if (!activeSaveId) return;
+      const idx = saves.findIndex((s) => s.id === activeSaveId);
+      if (idx === -1) return;
+      saves[idx] = {
+        ...saves[idx],
+        world,
+        level,
+        score,
+        ownedSkins,
+        equippedSkin,
+        updatedAt: Date.now()
+      };
+      writeSavesToStorage();
+    }
+
+    function saveIfActive() {
+      if (!activeSaveId) return;
+      saveActiveProgress();
+    }
+
+    function initializeSaves() {
+      saves = loadSavesFromStorage();
+      const storedActive = localStorage.getItem(ACTIVE_SAVE_KEY);
+      activeSaveId = saves.some((s) => s.id === storedActive) ? storedActive : null;
+      populateSavesDropdown();
+      updateWorldDropdownVisibility();
+      if (activeSaveId) {
+        const activeSave = saves.find((s) => s.id === activeSaveId);
+        if (activeSave) {
+          setProgress(activeSave);
+        }
+      }
+    }
+
+    function updateWorldDropdownVisibility() {
+      const activeSave = saves.find((s) => s.id === activeSaveId);
+      const showWorld = !!activeSave && String(activeSave.name || "").trim().toLowerCase() === "anna";
+      worldSelectEl.style.display = showWorld ? "inline-block" : "none";
+    }
+
+    function updateWorldVisuals() {
+      document.body.classList.toggle("world-2", world === 2);
+      worldBadgeEl.textContent = `World ${world}`;
+      worldSelectEl.value = String(world);
+    }
+
+    function getRequiredTailHits() {
+      return world === 2 ? 2 : 1;
+    }
+
+    function getGoldenTailColor() {
+      return "#ffb703";
+    }
+
+    function getSnakeBodyColor() {
+      return equippedSkin && SKIN_COLORS[equippedSkin] ? SKIN_COLORS[equippedSkin] : "#4caf50";
+    }
+
+    function getGoldenTailSize() {
+      if (level === 2) return 2;
+      if (level === 3) return 1;
+      if (level === 7) return 2;
+      if (level === 8) return 1;
+      if (level === 9) return 3;
+      if (level === 11) return 2;
+      if (level === 12) return 1;
+      if (level === 13) return 3;
+      if (level === 16) return 2;
+      if (level === 17) return 1;
+      if (level >= 18 && level <= 20) return 3;
+      if (level === 24) return 2;
+      if (level === 25) return 1;
+      return 3;
+    }
+
+    function getFruitCountForLevel() {
+      if (level === 4) return 1;
+      if (level === 5) return 2;
+      if (level === 9) return 1;
+      if (level === 10) return 2;
+      if (level === 13) return 1;
+      if (level === 14) return 2;
+      if (level >= 15 && level <= 17) return 3;
+      if (level === 18) return 1;
+      if (level === 19) return 2;
+      if (level === 20) return 3;
+      if (level === 21) return 1;
+      if (level === 22) return 2;
+      if (level >= 23 && level <= 25) return 3;
+      if (level >= 6) return 3;
+      return 0;
+    }
+
+    function isFruitLevel() {
+      return getFruitCountForLevel() > 0;
+    }
+
+    function getFruitSpeedPercent() {
+      if (level >= 21 && level <= 25) return 0.50;
+      if (level >= 18 && level <= 20) return 0.40;
+      if (level >= 13 && level <= 17) return 0.30;
+      if (level >= 9 && level <= 12) return 0.20;
+      if (level >= 4 && level <= 8) return 0.10;
+      return 0.10;
+    }
+
+    function spawnFruit() {
+      const occupied = new Set(snake.map((part) => `${part.x},${part.y}`));
+      for (const fruit of fruits) {
+        occupied.add(`${fruit.x},${fruit.y}`);
+      }
+      let fx = 0;
+      let fy = 0;
+      do {
+        fx = Math.floor(Math.random() * cols);
+        fy = Math.floor(Math.random() * rows);
+      } while (occupied.has(`${fx},${fy}`));
+      fruits.push({ x: fx, y: fy });
+    }
+
+    function updateTimerText() {
+      timerEl.textContent = `Time: ${timeLeft}`;
+    }
+
+    function updateScoreText() {
+      scoreEl.textContent = `Golden tails caught: ${score}`;
+    }
+
+    function resetGame() {
+      snake = [];
+      const length = 13;
+      const startX = Math.floor(Math.random() * (cols - length + 1)) + (length - 1);
+      const startY = Math.floor(Math.random() * rows);
+      for (let i = 0; i < length; i += 1) {
+        snake.push({ x: startX - i, y: startY });
+      }
+
+      dir = { x: 1, y: 0 };
+      won = false;
+      tailHits = 0;
+      pendingWorldUnlock = false;
+      selectedGoldenOffset = null;
+      highlightedGoldenOffsets = new Set();
+      timeLeft = 30;
+      resetSpeed();
+      fruits = [];
+      nextHuntAt = null;
+      pendingFruitSpawns = [];
+      targetFruit = null;
+      if (isFruitLevel()) {
+        for (let i = 0; i < getFruitCountForLevel(); i += 1) {
+          spawnFruit();
+        }
+        nextHuntAt = performance.now() + 3000;
+      }
+      statusEl.textContent = getRequiredTailHits() === 2
+        ? "Click the same golden tail square twice to move on."
+        : "Click the golden tail to move on to the next level.";
+      updateTimerText();
+    }
+
+    function showStartScreen() {
+      gameState = "start";
+      resetGame();
+      pauseBtn.textContent = "Pause";
+      statusEl.textContent = "Press Start to begin.";
+      overlayScoreEl.textContent = "";
+      overlayTextEl.textContent = "Snake Break";
+      startBtn.style.display = "inline-block";
+      nextLevelBtn.style.display = "none";
+      tryAgainBtn.style.display = "none";
+      overlayEl.classList.remove("hidden");
+      render();
+    }
+
+    function startGame() {
+      gameState = "playing";
+      resetGame();
+      pauseBtn.textContent = "Pause";
+      lastMoveAt = performance.now();
+      overlayEl.classList.add("hidden");
+      render();
+    }
+
+    function endGame(reason) {
+      gameState = "ended";
+      pauseBtn.textContent = "Pause";
+      const isWorldUnlockWin = reason === "win" && world === 1 && level === 25;
+      pendingWorldUnlock = isWorldUnlockWin;
+      overlayScoreEl.textContent = reason === "win" ? "+1 Golden tail" : "-1 Golden tail";
+      overlayScoreEl.style.color = reason === "win" ? "#67e08a" : "#ff9f9f";
+      overlayTextEl.textContent = isWorldUnlockWin
+        ? "Do you dare move on to world 2?"
+        : (reason === "win" ? "You Win!" : "You ran out of time!");
+      startBtn.style.display = "none";
+      nextLevelBtn.style.display = reason === "win" ? "inline-block" : "none";
+      nextLevelBtn.textContent = isWorldUnlockWin ? "Next world" : "Next level";
+      tryAgainBtn.style.display = reason === "time" ? "inline-block" : "none";
+      overlayEl.classList.remove("hidden");
+      render();
+    }
+
+    function maybeTurn() {
+      if (Math.random() < 0.12) {
+        const options = [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 }
+        ].filter((d) => !(d.x === -dir.x && d.y === -dir.y));
+
+        dir = options[Math.floor(Math.random() * options.length)];
+      }
+    }
+
+    function getClosestFruit(head) {
+      if (fruits.length === 0) return null;
+      let closest = fruits[0];
+      let bestDist = Math.abs(head.x - closest.x) + Math.abs(head.y - closest.y);
+      for (let i = 1; i < fruits.length; i += 1) {
+        const fruit = fruits[i];
+        const dist = Math.abs(head.x - fruit.x) + Math.abs(head.y - fruit.y);
+        if (dist < bestDist) {
+          closest = fruit;
+          bestDist = dist;
+        }
+      }
+      return closest;
+    }
+
+    function steerTowardTarget(head, inBounds, target) {
+      if (!target) return;
+      const options = [
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 }
+      ].filter((d) => {
+        if (d.x === -dir.x && d.y === -dir.y) return false;
+        return inBounds(head.x + d.x, head.y + d.y);
+        });
+
+      if (options.length === 0) return;
+
+      // BFS over the grid to get the shortest valid route to the target.
+      const key = (x, y) => `${x},${y}`;
+      const queue = [];
+      const seen = new Set([key(head.x, head.y)]);
+
+      for (const opt of options) {
+        const nx = head.x + opt.x;
+        const ny = head.y + opt.y;
+        if (!inBounds(nx, ny)) continue;
+        queue.push({ x: nx, y: ny, first: opt });
+        seen.add(key(nx, ny));
+      }
+
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        if (cur.x === target.x && cur.y === target.y) {
+          dir = cur.first;
+          return;
+        }
+
+        for (const step of [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 }
+        ]) {
+          const tx = cur.x + step.x;
+          const ty = cur.y + step.y;
+          const k = key(tx, ty);
+          if (!inBounds(tx, ty) || seen.has(k)) continue;
+          seen.add(k);
+          queue.push({ x: tx, y: ty, first: cur.first });
+        }
+      }
+
+      options.sort((a, b) => {
+        const aDist = Math.abs(head.x + a.x - target.x) + Math.abs(head.y + a.y - target.y);
+        const bDist = Math.abs(head.x + b.x - target.x) + Math.abs(head.y + b.y - target.y);
+        return aDist - bDist;
+      });
+      dir = options[0];
+    }
+
+    function moveSnake() {
+      if (gameState !== "playing" || won || timeLeft <= 0) return;
+
+      const head = snake[0];
+      const neck = snake[1];
+      const inBounds = (x, y) => x >= 0 && x < cols && y >= 0 && y < rows;
+      const isBackwardStep = (x, y) => neck && x === neck.x && y === neck.y;
+      // Treat the full body except the current tail cell as blocked.
+      const isBodyBlocked = (x, y) =>
+        snake.slice(0, -1).some((part) => part.x === x && part.y === y);
+
+      if (isFruitLevel()) {
+        const now = performance.now();
+        while (
+          pendingFruitSpawns.length > 0 &&
+          pendingFruitSpawns[0] <= now &&
+          fruits.length < getFruitCountForLevel()
+        ) {
+          pendingFruitSpawns.shift();
+          spawnFruit();
+          nextHuntAt = now + 3000;
+        }
+        if (fruits.length > 0 && nextHuntAt !== null && now >= nextHuntAt) {
+          targetFruit = getClosestFruit(head);
+          nextHuntAt = now + 3000;
+        }
+        if (targetFruit) {
+          // Keep fruit as the active goal until eaten.
+          steerTowardTarget(head, inBounds, targetFruit);
+        } else {
+          maybeTurn();
+        }
+      } else {
+        maybeTurn();
+      }
+
+      let nx = head.x + dir.x;
+      let ny = head.y + dir.y;
+
+      // If the next move would reverse or hit body, pick a safe alternative.
+      if (isBackwardStep(nx, ny) || isBodyBlocked(nx, ny)) {
+        const alternatives = [
+          { x: 1, y: 0 },
+          { x: -1, y: 0 },
+          { x: 0, y: 1 },
+          { x: 0, y: -1 }
+        ].filter((d) => {
+          if (d.x === -dir.x && d.y === -dir.y) return false;
+          const tx = head.x + d.x;
+          const ty = head.y + d.y;
+          return inBounds(tx, ty) && !isBackwardStep(tx, ty) && !isBodyBlocked(tx, ty);
+        });
+        if (alternatives.length > 0) {
+          dir = alternatives[Math.floor(Math.random() * alternatives.length)];
+          nx = head.x + dir.x;
+          ny = head.y + dir.y;
+        }
+      }
+
+      if (!inBounds(nx, ny)) {
+        // Wall hit: only allow left/right turn relative to current direction.
+        const leftRightOptions = dir.x !== 0
+          ? [{ x: 0, y: 1 }, { x: 0, y: -1 }]
+          : [{ x: 1, y: 0 }, { x: -1, y: 0 }];
+
+        const validOptions = leftRightOptions.filter((d) => {
+          const tx = head.x + d.x;
+          const ty = head.y + d.y;
+          return inBounds(tx, ty) && !isBackwardStep(tx, ty) && !isBodyBlocked(tx, ty);
+        });
+
+        if (validOptions.length > 0) {
+          dir = validOptions[Math.floor(Math.random() * validOptions.length)];
+          nx = head.x + dir.x;
+          ny = head.y + dir.y;
+        } else {
+          nx = head.x;
+          ny = head.y;
+        }
+      }
+
+      // Final safety check to guarantee no body overlap.
+      if (isBodyBlocked(nx, ny)) {
+        nx = head.x;
+        ny = head.y;
+      }
+
+      snake.unshift({ x: nx, y: ny });
+      snake.pop();
+
+      if (isFruitLevel() && fruits.length > 0) {
+        const eatenIndex = fruits.findIndex((fruit) => nx === fruit.x && ny === fruit.y);
+        if (eatenIndex !== -1) {
+          const speedPercent = getFruitSpeedPercent();
+          const percentBasedInterval = moveIntervalMs * (1 - speedPercent);
+          const minimumVisibleStepInterval = moveIntervalMs - 3;
+          moveIntervalMs = Math.max(45, Math.min(percentBasedInterval, minimumVisibleStepInterval));
+          fruits.splice(eatenIndex, 1);
+          targetFruit = null;
+          pendingFruitSpawns.push(performance.now() + 5000);
+          pendingFruitSpawns.sort((a, b) => a - b);
+          nextHuntAt = performance.now() + 3000;
+        }
+      }
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = "rgba(10, 43, 57, 0.08)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += cell) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += cell) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawSnake() {
+      const goldenTailSize = getGoldenTailSize();
+      snake.forEach((part, i) => {
+        const isHead = i === 0;
+        const isGoldenTail = i >= snake.length - goldenTailSize;
+        const x = part.x * cell + 1;
+        const y = part.y * cell + 1;
+        const size = cell - 2;
+        if (isGoldenTail) {
+          ctx.fillStyle = getGoldenTailColor();
+          ctx.fillRect(x, y, size, size);
+          const goldenStart = snake.length - goldenTailSize;
+          const isSelectedGolden = selectedGoldenOffset !== null && i === (goldenStart + selectedGoldenOffset);
+          const tailOffset = i - goldenStart;
+          const isHighlightedGolden = highlightedGoldenOffsets.has(tailOffset);
+          if (world === 2 && !isSelectedGolden && !isHighlightedGolden) {
+            ctx.fillStyle = "rgba(95, 58, 28, 0.45)";
+            ctx.fillRect(x, y, size, size);
+          }
+        } else {
+          ctx.fillStyle = getSnakeBodyColor();
+          ctx.fillRect(x, y, size, size);
+        }
+
+        if (isHead) {
+          ctx.fillStyle = "#ffffff";
+          if (dir.x !== 0) {
+            const eyeY1 = y + 2;
+            const eyeY2 = y + size - 8;
+            const eyeX = dir.x > 0 ? x + size - 7 : x + 1;
+            ctx.fillRect(eyeX, eyeY1, 6, 6);
+            ctx.fillRect(eyeX, eyeY2, 6, 6);
+            ctx.fillStyle = "#20323a";
+            ctx.fillRect(eyeX + 2, eyeY1 + 2, 2, 2);
+            ctx.fillRect(eyeX + 2, eyeY2 + 2, 2, 2);
+          } else {
+            const eyeX1 = x + 2;
+            const eyeX2 = x + size - 8;
+            const eyeY = dir.y > 0 ? y + size - 7 : y + 1;
+            ctx.fillRect(eyeX1, eyeY, 6, 6);
+            ctx.fillRect(eyeX2, eyeY, 6, 6);
+            ctx.fillStyle = "#20323a";
+            ctx.fillRect(eyeX1 + 2, eyeY + 2, 2, 2);
+            ctx.fillRect(eyeX2 + 2, eyeY + 2, 2, 2);
+          }
+        }
+      });
+    }
+
+    function drawFruits() {
+      if (!isFruitLevel() || fruits.length === 0) return;
+      ctx.fillStyle = "#d62828";
+      for (const fruit of fruits) {
+        ctx.fillRect(fruit.x * cell + 2, fruit.y * cell + 2, cell - 4, cell - 4);
+      }
+    }
+
+    function drawBlueSnakePreview(previewCtx, previewCanvas, bodyColor) {
+      const pCell = 14;
+      const px = 18;
+      const py = 10;
+      const previewSnake = [];
+      for (let i = 0; i < 13; i += 1) {
+        previewSnake.push({ x: 5, y: 1 + i });
+      }
+
+      previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      previewSnake.forEach((part, i) => {
+        const isHead = i === 0;
+        const isGoldenTail = i >= previewSnake.length - 3;
+        const x = px + part.x * pCell;
+        const y = py + part.y * pCell;
+        const size = pCell - 2;
+
+        if (isGoldenTail) {
+          previewCtx.fillStyle = "#ffb703";
+          previewCtx.fillRect(x, y, size, size);
+        } else {
+          previewCtx.fillStyle = bodyColor;
+          previewCtx.fillRect(x, y, size, size);
+        }
+
+        if (isHead) {
+          const eyeSize = 3;
+          const pupilSize = 1;
+          const leftEyeX = x + 1;
+          const rightEyeX = x + size - eyeSize - 1;
+          const eyeY = y + 1;
+          previewCtx.fillStyle = "#ffffff";
+          previewCtx.fillRect(leftEyeX, eyeY, eyeSize, eyeSize);
+          previewCtx.fillRect(rightEyeX, eyeY, eyeSize, eyeSize);
+          previewCtx.fillStyle = "#20323a";
+          previewCtx.fillRect(leftEyeX + 1, eyeY + 1, pupilSize, pupilSize);
+          previewCtx.fillRect(rightEyeX + 1, eyeY + 1, pupilSize, pupilSize);
+        }
+      });
+    }
+
+    function showNotEnoughTails() {
+      if (flashTimerId) {
+        clearTimeout(flashTimerId);
+      }
+      flashOverlayEl.textContent = "Not enough Golden tails";
+      flashOverlayEl.classList.remove("hidden");
+      flashTimerId = setTimeout(() => {
+        flashOverlayEl.classList.add("hidden");
+        flashTimerId = null;
+      }, 2000);
+    }
+
+    function updateSkinButtons() {
+      skinActionBtns.forEach((btn) => {
+        const skin = btn.dataset.skin;
+        if (equippedSkin === skin) {
+          btn.textContent = "Unequip";
+        } else if (ownedSkins.includes(skin)) {
+          btn.textContent = "Equip";
+        } else {
+          btn.textContent = "Buy (100)";
+        }
+      });
+    }
+
+    function handleSkinSelect(skin) {
+      if (equippedSkin === skin) {
+        equippedSkin = null;
+        updateSkinButtons();
+        saveActiveProgress();
+        return;
+      }
+
+      if (!ownedSkins.includes(skin)) {
+        if (score < 100) {
+          showNotEnoughTails();
+          return;
+        }
+        score -= 100;
+        updateScoreText();
+        ownedSkins.push(skin);
+      }
+
+      equippedSkin = skin;
+      updateSkinButtons();
+      saveActiveProgress();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawGrid();
+      drawFruits();
+      drawSnake();
+    }
+
+    function gameLoop(timestamp) {
+      if (gameState === "playing" && !won && timeLeft > 0 && timestamp - lastMoveAt >= moveIntervalMs) {
+        moveSnake();
+        lastMoveAt = timestamp;
+      }
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function getPointerCell(event) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const px = (event.clientX - rect.left) * scaleX;
+      const py = (event.clientY - rect.top) * scaleY;
+      return {
+        x: Math.floor(px / cell),
+        y: Math.floor(py / cell)
+      };
+    }
+
+    function handleClick(event) {
+      if (gameState !== "playing" || won || timeLeft <= 0) return;
+      const pointer = getPointerCell(event);
+      const goldenTailSize = getGoldenTailSize();
+      const goldenTail = snake.slice(-goldenTailSize);
+      const clickedOffset = goldenTail.findIndex((part) => pointer.x === part.x && pointer.y === part.y);
+      if (clickedOffset === -1) return;
+
+      if (world !== 2) {
+        won = true;
+        statusEl.textContent = "Nice! You hit the golden tail and won.";
+        endGame("win");
+        return;
+      }
+
+      highlightedGoldenOffsets.add(clickedOffset);
+      if (selectedGoldenOffset === null || selectedGoldenOffset !== clickedOffset) {
+        selectedGoldenOffset = clickedOffset;
+        tailHits = 1;
+        statusEl.textContent = "That square turned golden. Click the same golden square again.";
+        return;
+      }
+
+      tailHits = 2;
+      won = true;
+      statusEl.textContent = "Nice! You hit the same golden square and won.";
+      endGame("win");
+    }
+
+    canvas.addEventListener("pointerdown", handleClick);
+    shopBtn.addEventListener("click", () => {
+      shopPausedGame = gameState === "playing";
+      if (shopPausedGame) {
+        gameState = "paused";
+      }
+      shopTitleEl.textContent = "Snake Shop";
+      shopMainScreenEl.classList.remove("hidden");
+      tailSkinsScreenEl.classList.add("hidden");
+      shopModalEl.classList.add("open");
+      shopModalEl.setAttribute("aria-hidden", "false");
+    });
+    shopCloseBtn.addEventListener("click", () => {
+      shopModalEl.classList.remove("open");
+      shopModalEl.setAttribute("aria-hidden", "true");
+      if (shopPausedGame) {
+        gameState = "playing";
+        shopPausedGame = false;
+      }
+    });
+    shopModalEl.addEventListener("click", (event) => {
+      if (event.target === shopModalEl) {
+        shopModalEl.classList.remove("open");
+        shopModalEl.setAttribute("aria-hidden", "true");
+        if (shopPausedGame) {
+          gameState = "playing";
+          shopPausedGame = false;
+        }
+      }
+    });
+    tailSkinsBtn.addEventListener("click", () => {
+      shopTitleEl.textContent = "Tail Skins";
+      shopMainScreenEl.classList.add("hidden");
+      tailSkinsScreenEl.classList.remove("hidden");
+      updateSkinButtons();
+      drawBlueSnakePreview(tailPreviewCtx3, tailPreviewCanvas3, "#d64545");
+      drawBlueSnakePreview(tailPreviewCtx, tailPreviewCanvas, "#3f88d1");
+      drawBlueSnakePreview(tailPreviewCtx4, tailPreviewCanvas4, "#e68a2e");
+      drawBlueSnakePreview(tailPreviewCtx2, tailPreviewCanvas2, "#8a4fd6");
+    });
+    tailPreviewCanvases.forEach((previewCanvas) => {
+      previewCanvas.addEventListener("click", () => {
+        const skin = previewCanvas.id === "tailPreviewCanvas" ? "blue"
+          : previewCanvas.id === "tailPreviewCanvas2" ? "purple"
+          : previewCanvas.id === "tailPreviewCanvas3" ? "red"
+          : "orange";
+        handleSkinSelect(skin);
+      });
+    });
+    skinActionBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        handleSkinSelect(btn.dataset.skin);
+      });
+    });
+    pauseBtn.addEventListener("click", () => {
+      if (gameState === "playing") {
+        gameState = "paused";
+        overlayScoreEl.textContent = "";
+        overlayTextEl.textContent = "I  I";
+        startBtn.style.display = "none";
+        nextLevelBtn.style.display = "none";
+        tryAgainBtn.style.display = "none";
+        overlayEl.classList.remove("hidden");
+        pauseBtn.textContent = "Resume";
+        return;
+      }
+      if (gameState === "paused") {
+        gameState = "playing";
+        overlayEl.classList.add("hidden");
+        pauseBtn.textContent = "Pause";
+      }
+    });
+    startBtn.addEventListener("click", startGame);
+    nextLevelBtn.addEventListener("click", () => {
+      score += 1;
+      updateScoreText();
+      if (pendingWorldUnlock) {
+        world = 2;
+        level = 1;
+        pendingWorldUnlock = false;
+      } else {
+        level += 1;
+      }
+      updateWorldVisuals();
+      levelEl.textContent = `Level ${level}`;
+      resetSpeed();
+      saveActiveProgress();
+      startGame();
+    });
+    tryAgainBtn.addEventListener("click", showStartScreen);
+    restartBtn.addEventListener("click", () => {
+      level = 1;
+      levelEl.textContent = "Level 1";
+      resetSpeed();
+      saveActiveProgress();
+      showStartScreen();
+    });
+    worldSelectEl.addEventListener("change", () => {
+      world = Number(worldSelectEl.value);
+      level = 1;
+      levelEl.textContent = "Level 1";
+      resetSpeed();
+      updateWorldVisuals();
+      saveActiveProgress();
+      showStartScreen();
+    });
+    savesSelectEl.addEventListener("change", () => {
+      // Always persist the game you were just playing before switching saves.
+      saveActiveProgress();
+
+      const selected = savesSelectEl.value;
+      if (selected === "__new__") {
+        const name = prompt("Name your game save:");
+        if (!name || !name.trim()) {
+          populateSavesDropdown();
+          return;
+        }
+        const id = createSaveId();
+        const base = getDefaultProgress();
+        saves.push({
+          id,
+          name: name.trim(),
+          ...base,
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        });
+        activeSaveId = id;
+        writeSavesToStorage();
+        populateSavesDropdown();
+        setProgress(base);
+        return;
+      }
+
+      if (!selected) {
+        activeSaveId = null;
+        writeSavesToStorage();
+        updateWorldDropdownVisibility();
+        setProgress(getDefaultProgress());
+        return;
+      }
+
+      const selectedSave = saves.find((s) => s.id === selected);
+      if (!selectedSave) {
+        populateSavesDropdown();
+        return;
+      }
+
+      activeSaveId = selectedSave.id;
+      writeSavesToStorage();
+      setProgress(selectedSave);
+    });
+
+    initializeSaves();
+    updateSkinButtons();
+    drawBlueSnakePreview(tailPreviewCtx3, tailPreviewCanvas3, "#d64545");
+    drawBlueSnakePreview(tailPreviewCtx, tailPreviewCanvas, "#3f88d1");
+    drawBlueSnakePreview(tailPreviewCtx4, tailPreviewCanvas4, "#e68a2e");
+    drawBlueSnakePreview(tailPreviewCtx2, tailPreviewCanvas2, "#8a4fd6");
+    showStartScreen();
+    updateWorldVisuals();
+    updateScoreText();
+    lastMoveAt = performance.now();
+    requestAnimationFrame(gameLoop);
+    setInterval(() => {
+      if (gameState !== "playing" || won || timeLeft <= 0) return;
+      timeLeft -= 1;
+      updateTimerText();
+      if (timeLeft <= 0) {
+        score = Math.max(0, score - 1);
+        updateScoreText();
+        level = 1;
+        levelEl.textContent = "Level 1";
+        resetSpeed();
+        saveActiveProgress();
+        statusEl.textContent = "Time up! Press Restart to try again.";
+        endGame("time");
+      }
+    }, 1000);
+
+    // Reliability autosave: captures level/score changes even on abrupt exits.
+    setInterval(() => {
+      saveIfActive();
+    }, 2000);
+
+    window.addEventListener("beforeunload", () => {
+      saveIfActive();
+    });
+    window.addEventListener("pagehide", () => {
+      saveIfActive();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        saveIfActive();
+      }
+    });
+  </script>
+</body>
+</html>

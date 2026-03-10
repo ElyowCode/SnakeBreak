@@ -1,0 +1,41 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <rect width="640" height="640" fill="#4b7f2b"/>
+  <rect x="20" y="92" width="600" height="526" fill="#9fcd4a"/>
+
+  <!-- subtle checker board -->
+  <g opacity="0.22">
+    <defs>
+      <pattern id="checks" width="70" height="70" patternUnits="userSpaceOnUse">
+        <rect width="35" height="35" fill="#b8de67"/>
+        <rect x="35" y="35" width="35" height="35" fill="#b8de67"/>
+      </pattern>
+    </defs>
+    <rect x="20" y="92" width="600" height="526" fill="url(#checks)"/>
+  </g>
+
+  <!-- blue snake (Google Snake-inspired) -->
+  <g>
+    <!-- body -->
+    <rect x="78" y="340" width="70" height="30" rx="15" fill="#4574e6"/>
+    <!-- neck -->
+    <rect x="140" y="336" width="26" height="38" rx="13" fill="#4a79ea"/>
+    <!-- head -->
+    <rect x="152" y="340" width="26" height="30" rx="14" fill="#4f7df0"/>
+
+    <!-- eyes -->
+    <circle cx="146" cy="344" r="10" fill="#ffffff"/>
+    <circle cx="146" cy="364" r="10" fill="#ffffff"/>
+    <circle cx="149" cy="344" r="4" fill="#2f4fae"/>
+    <circle cx="149" cy="364" r="4" fill="#2f4fae"/>
+
+    <!-- nostrils -->
+    <circle cx="165" cy="350" r="1.6" fill="#3f63c8"/>
+    <circle cx="165" cy="360" r="1.6" fill="#3f63c8"/>
+  </g>
+
+  <!-- apple -->
+  <circle cx="458" cy="359" r="15" fill="#f24822"/>
+  <ellipse cx="462" cy="339" rx="6" ry="3" fill="#6ec24a" transform="rotate(-20 462 339)"/>
+
+  <text x="20" y="54" font-family="Arial, sans-serif" font-size="28" fill="#fff">Blue snake style preview</text>
+</svg>

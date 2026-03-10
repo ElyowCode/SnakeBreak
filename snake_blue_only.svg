@@ -1,0 +1,16 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="120" height="70" viewBox="70 330 120 70">
+  <!-- blue snake only, transparent background -->
+  <g>
+    <rect x="78" y="340" width="70" height="30" rx="15" fill="#4574e6"/>
+    <rect x="140" y="336" width="26" height="38" rx="13" fill="#4a79ea"/>
+    <rect x="152" y="340" width="26" height="30" rx="14" fill="#4f7df0"/>
+
+    <circle cx="146" cy="344" r="10" fill="#ffffff"/>
+    <circle cx="146" cy="364" r="10" fill="#ffffff"/>
+    <circle cx="149" cy="344" r="4" fill="#2f4fae"/>
+    <circle cx="149" cy="364" r="4" fill="#2f4fae"/>
+
+    <circle cx="165" cy="350" r="1.6" fill="#3f63c8"/>
+    <circle cx="165" cy="360" r="1.6" fill="#3f63c8"/>
+  </g>
+</svg>
