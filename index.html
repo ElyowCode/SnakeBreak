@@ -673,7 +673,7 @@
             <div class="shop-grid">
               <button id="tailSkinsBtn" class="shop-item" type="button">Tail Skins</button>
               <div class="shop-item">Background Packs</div>
-              <div class="shop-item">Fruit Styles</div>
+              <button id="fruitStylesBtn" class="shop-item" type="button">Fruit Skins</button>
               <div class="shop-item">Tools</div>
             </div>
           </div>
@@ -707,13 +707,43 @@
               </div>
             </div>
           </div>
+          <div id="fruitStylesScreen" class="shop-screen hidden">
+            <div class="tail-screen">
+              <div class="tail-list">
+                <div class="tail-card tertiary">
+                  <h3 class="tail-name">Red fruit</h3>
+                  <canvas id="fruitPreviewCanvas3" class="tail-preview-canvas" width="180" height="240" aria-label="Red fruit style preview"></canvas>
+                  <button class="skin-action-btn" data-fruit-style="red" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card primary">
+                  <h3 class="tail-name">Blue fruit</h3>
+                  <canvas id="fruitPreviewCanvas" class="tail-preview-canvas" width="180" height="240" aria-label="Blue fruit style preview"></canvas>
+                  <button class="skin-action-btn" data-fruit-style="blue" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card quaternary">
+                  <h3 class="tail-name">Orange fruit</h3>
+                  <canvas id="fruitPreviewCanvas4" class="tail-preview-canvas" width="180" height="240" aria-label="Orange fruit style preview"></canvas>
+                  <button class="skin-action-btn" data-fruit-style="orange" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+                <div class="tail-card secondary">
+                  <h3 class="tail-name">Purple fruit</h3>
+                  <canvas id="fruitPreviewCanvas2" class="tail-preview-canvas" width="180" height="240" aria-label="Purple fruit style preview"></canvas>
+                  <button class="skin-action-btn" data-fruit-style="purple" type="button">Buy (100)</button>
+                  <p class="tail-worth">Worth: 100 Golden tails</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div id="flashOverlay" class="flash-overlay hidden">Not enough Golden tails</div>
     </div>
 
     <div class="controls">
-      <span>Tip: click or tap directly on the tail segment.</span>
+      <span id="userCount">Devices played: 1</span>
       <button id="restart" type="button">Restart</button>
     </div>
   </main>
@@ -741,7 +771,9 @@
     const shopTitleEl = document.getElementById("shopTitle");
     const shopMainScreenEl = document.getElementById("shopMainScreen");
     const tailSkinsScreenEl = document.getElementById("tailSkinsScreen");
+    const fruitStylesScreenEl = document.getElementById("fruitStylesScreen");
     const tailSkinsBtn = document.getElementById("tailSkinsBtn");
+    const fruitStylesBtn = document.getElementById("fruitStylesBtn");
     const tailPreviewCanvas = document.getElementById("tailPreviewCanvas");
     const tailPreviewCtx = tailPreviewCanvas.getContext("2d");
     const tailPreviewCanvas2 = document.getElementById("tailPreviewCanvas2");
@@ -750,10 +782,21 @@
     const tailPreviewCtx3 = tailPreviewCanvas3.getContext("2d");
     const tailPreviewCanvas4 = document.getElementById("tailPreviewCanvas4");
     const tailPreviewCtx4 = tailPreviewCanvas4.getContext("2d");
-    const skinActionBtns = document.querySelectorAll(".skin-action-btn");
+    const fruitPreviewCanvas = document.getElementById("fruitPreviewCanvas");
+    const fruitPreviewCtx = fruitPreviewCanvas.getContext("2d");
+    const fruitPreviewCanvas2 = document.getElementById("fruitPreviewCanvas2");
+    const fruitPreviewCtx2 = fruitPreviewCanvas2.getContext("2d");
+    const fruitPreviewCanvas3 = document.getElementById("fruitPreviewCanvas3");
+    const fruitPreviewCtx3 = fruitPreviewCanvas3.getContext("2d");
+    const fruitPreviewCanvas4 = document.getElementById("fruitPreviewCanvas4");
+    const fruitPreviewCtx4 = fruitPreviewCanvas4.getContext("2d");
+    const skinActionBtns = document.querySelectorAll(".skin-action-btn[data-skin]");
+    const fruitActionBtns = document.querySelectorAll("[data-fruit-style]");
     const tailPreviewCanvases = [tailPreviewCanvas, tailPreviewCanvas2, tailPreviewCanvas3, tailPreviewCanvas4];
+    const fruitPreviewCanvases = [fruitPreviewCanvas, fruitPreviewCanvas2, fruitPreviewCanvas3, fruitPreviewCanvas4];
     const flashOverlayEl = document.getElementById("flashOverlay");
     const restartBtn = document.getElementById("restart");
+    const userCountEl = document.getElementById("userCount");
     const levelEl = document.querySelector(".level");
 
     const cell = 20;
@@ -788,9 +831,20 @@
     let flashTimerId = null;
     let ownedSkins = [];
     let equippedSkin = null;
+    let ownedFruitStyles = [];
+    let equippedFruitStyle = null;
 
     const SAVES_KEY = "snake_break_saves_v1";
     const ACTIVE_SAVE_KEY = "snake_break_active_save_v1";
+    const DEVICE_SEEN_KEY = "snake_break_device_seen_v1";
+    const DEVICE_COUNT_API_HIT_URLS = [
+      "https://api.countapi.xyz/hit/elyowcode.github.io/snakebreak_devices_played_v1",
+      "https://countapi.xyz/hit/elyowcode.github.io/snakebreak_devices_played_v1"
+    ];
+    const DEVICE_COUNT_API_GET_URLS = [
+      "https://api.countapi.xyz/get/elyowcode.github.io/snakebreak_devices_played_v1",
+      "https://countapi.xyz/get/elyowcode.github.io/snakebreak_devices_played_v1"
+    ];
     const SKIN_COLORS = {
       blue: "#3f88d1",
       purple: "#8a4fd6",
@@ -819,7 +873,7 @@
     }
 
     function getDefaultProgress() {
-      return { world: 1, level: 1, score: 0, ownedSkins: [], equippedSkin: null };
+      return { world: 1, level: 1, score: 0, ownedSkins: [], equippedSkin: null, ownedFruitStyles: [], equippedFruitStyle: null };
     }
 
     function createSaveId() {
@@ -841,6 +895,45 @@
         localStorage.setItem(ACTIVE_SAVE_KEY, activeSaveId);
       } else {
         localStorage.removeItem(ACTIVE_SAVE_KEY);
+      }
+    }
+
+    async function fetchCounterJson(urls) {
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) {
+            continue;
+          }
+          return await response.json();
+        } catch {
+          // Try the next counter endpoint.
+        }
+      }
+      throw new Error("Counter request failed");
+    }
+
+    async function initializeUserCount() {
+      if (userCountEl) {
+        userCountEl.textContent = "Devices played: ...";
+      }
+
+      const hasSeen = localStorage.getItem(DEVICE_SEEN_KEY) === "true";
+      const endpoints = hasSeen ? DEVICE_COUNT_API_GET_URLS : DEVICE_COUNT_API_HIT_URLS;
+
+      try {
+        const data = await fetchCounterJson(endpoints);
+        const count = Number(data.value) || 0;
+        if (!hasSeen) {
+          localStorage.setItem(DEVICE_SEEN_KEY, "true");
+        }
+        if (userCountEl) {
+          userCountEl.textContent = `Devices played: ${Math.max(1, count)}`;
+        }
+      } catch {
+        if (userCountEl) {
+          userCountEl.textContent = "Devices played: unavailable";
+        }
       }
     }
 
@@ -873,11 +966,14 @@
       score = Number(progress.score) || 0;
       ownedSkins = Array.isArray(progress.ownedSkins) ? progress.ownedSkins : [];
       equippedSkin = typeof progress.equippedSkin === "string" ? progress.equippedSkin : null;
+      ownedFruitStyles = Array.isArray(progress.ownedFruitStyles) ? progress.ownedFruitStyles : [];
+      equippedFruitStyle = typeof progress.equippedFruitStyle === "string" ? progress.equippedFruitStyle : null;
       levelEl.textContent = `Level ${level}`;
       updateWorldVisuals();
       updateWorldDropdownVisibility();
       updateScoreText();
       updateSkinButtons();
+      updateFruitButtons();
       resetSpeed();
       showStartScreen();
     }
@@ -893,6 +989,8 @@
         score,
         ownedSkins,
         equippedSkin,
+        ownedFruitStyles,
+        equippedFruitStyle,
         updatedAt: Date.now()
       };
       writeSavesToStorage();
@@ -939,6 +1037,10 @@
 
     function getSnakeBodyColor() {
       return equippedSkin && SKIN_COLORS[equippedSkin] ? SKIN_COLORS[equippedSkin] : "#4caf50";
+    }
+
+    function getFruitColor() {
+      return equippedFruitStyle && SKIN_COLORS[equippedFruitStyle] ? SKIN_COLORS[equippedFruitStyle] : "#d64545";
     }
 
     function getGoldenTailSize() {
@@ -1039,7 +1141,7 @@
         nextHuntAt = performance.now() + 3000;
       }
       statusEl.textContent = getRequiredTailHits() === 2
-        ? "Click the same golden tail square twice to move on."
+        ? "Click a brown golden-tail square, then click any golden tail square to move on."
         : "Click the golden tail to move on to the next level.";
       updateTimerText();
     }
@@ -1344,7 +1446,7 @@
 
     function drawFruits() {
       if (!isFruitLevel() || fruits.length === 0) return;
-      ctx.fillStyle = "#d62828";
+      ctx.fillStyle = getFruitColor();
       for (const fruit of fruits) {
         ctx.fillRect(fruit.x * cell + 2, fruit.y * cell + 2, cell - 4, cell - 4);
       }
@@ -1390,6 +1492,17 @@
         }
       });
     }
+    function drawFruitPreview(previewCtx, previewCanvas, fruitColor) {
+      previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      const centerX = Math.floor(previewCanvas.width / 2);
+      const centerY = Math.floor(previewCanvas.height / 2) + 10;
+      previewCtx.fillStyle = fruitColor;
+      previewCtx.fillRect(centerX - 26, centerY - 26, 52, 52);
+      previewCtx.fillStyle = "#2b7a2b";
+      previewCtx.fillRect(centerX - 4, centerY - 46, 8, 14);
+      previewCtx.fillStyle = "#5fbf5f";
+      previewCtx.fillRect(centerX + 4, centerY - 42, 18, 8);
+    }
 
     function showNotEnoughTails() {
       if (flashTimerId) {
@@ -1416,10 +1529,47 @@
       });
     }
 
+    function updateFruitButtons() {
+      fruitActionBtns.forEach((btn) => {
+        const style = btn.dataset.fruitStyle;
+        if (equippedFruitStyle === style) {
+          btn.textContent = "Unequip";
+        } else if (ownedFruitStyles.includes(style)) {
+          btn.textContent = "Equip";
+        } else {
+          btn.textContent = "Buy (100)";
+        }
+      });
+    }
+
+    function handleFruitStyleSelect(style) {
+      if (equippedFruitStyle === style) {
+        equippedFruitStyle = null;
+        updateFruitButtons();
+        saveActiveProgress();
+        return;
+      }
+
+      if (!ownedFruitStyles.includes(style)) {
+        if (score < 100) {
+          showNotEnoughTails();
+          return;
+        }
+
+        score -= 100;
+        updateScoreText();
+        ownedFruitStyles.push(style);
+      }
+
+      equippedFruitStyle = style;
+      updateFruitButtons();
+      saveActiveProgress();
+    }
     function handleSkinSelect(skin) {
       if (equippedSkin === skin) {
         equippedSkin = null;
         updateSkinButtons();
+        updateFruitButtons();
         saveActiveProgress();
         return;
       }
@@ -1436,6 +1586,7 @@
 
       equippedSkin = skin;
       updateSkinButtons();
+      updateFruitButtons();
       saveActiveProgress();
     }
 
@@ -1483,18 +1634,19 @@
         return;
       }
 
-      highlightedGoldenOffsets.add(clickedOffset);
-      if (selectedGoldenOffset === null || selectedGoldenOffset !== clickedOffset) {
+      if (highlightedGoldenOffsets.has(clickedOffset)) {
+        tailHits = 2;
         selectedGoldenOffset = clickedOffset;
-        tailHits = 1;
-        statusEl.textContent = "That square turned golden. Click the same golden square again.";
+        won = true;
+        statusEl.textContent = "Nice! You hit the golden square and won.";
+        endGame("win");
         return;
       }
 
-      tailHits = 2;
-      won = true;
-      statusEl.textContent = "Nice! You hit the same golden square and won.";
-      endGame("win");
+      highlightedGoldenOffsets.add(clickedOffset);
+      selectedGoldenOffset = clickedOffset;
+      tailHits = 1;
+      statusEl.textContent = "That square turned golden. Click any golden tail square again to move on.";
     }
 
     function handleViewportResize() {
@@ -1516,6 +1668,7 @@
       shopTitleEl.textContent = "Snake Shop";
       shopMainScreenEl.classList.remove("hidden");
       tailSkinsScreenEl.classList.add("hidden");
+      fruitStylesScreenEl.classList.add("hidden");
       shopModalEl.classList.add("open");
       shopModalEl.setAttribute("aria-hidden", "false");
     });
@@ -1540,12 +1693,25 @@
     tailSkinsBtn.addEventListener("click", () => {
       shopTitleEl.textContent = "Tail Skins";
       shopMainScreenEl.classList.add("hidden");
+      fruitStylesScreenEl.classList.add("hidden");
       tailSkinsScreenEl.classList.remove("hidden");
       updateSkinButtons();
+      updateFruitButtons();
       drawBlueSnakePreview(tailPreviewCtx3, tailPreviewCanvas3, "#d64545");
       drawBlueSnakePreview(tailPreviewCtx, tailPreviewCanvas, "#3f88d1");
       drawBlueSnakePreview(tailPreviewCtx4, tailPreviewCanvas4, "#e68a2e");
       drawBlueSnakePreview(tailPreviewCtx2, tailPreviewCanvas2, "#8a4fd6");
+    });
+    fruitStylesBtn.addEventListener("click", () => {
+      shopTitleEl.textContent = "Fruit Skins";
+      shopMainScreenEl.classList.add("hidden");
+      tailSkinsScreenEl.classList.add("hidden");
+      fruitStylesScreenEl.classList.remove("hidden");
+      updateFruitButtons();
+      drawFruitPreview(fruitPreviewCtx3, fruitPreviewCanvas3, "#d64545");
+      drawFruitPreview(fruitPreviewCtx, fruitPreviewCanvas, "#3f88d1");
+      drawFruitPreview(fruitPreviewCtx4, fruitPreviewCanvas4, "#e68a2e");
+      drawFruitPreview(fruitPreviewCtx2, fruitPreviewCanvas2, "#8a4fd6");
     });
     tailPreviewCanvases.forEach((previewCanvas) => {
       previewCanvas.addEventListener("click", () => {
@@ -1559,6 +1725,20 @@
     skinActionBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         handleSkinSelect(btn.dataset.skin);
+      });
+    });
+    fruitPreviewCanvases.forEach((previewCanvas) => {
+      previewCanvas.addEventListener("click", () => {
+        const style = previewCanvas.id === "fruitPreviewCanvas" ? "blue"
+          : previewCanvas.id === "fruitPreviewCanvas2" ? "purple"
+          : previewCanvas.id === "fruitPreviewCanvas3" ? "red"
+          : "orange";
+        handleFruitStyleSelect(style);
+      });
+    });
+    fruitActionBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        handleFruitStyleSelect(btn.dataset.fruitStyle);
       });
     });
     pauseBtn.addEventListener("click", () => {
@@ -1660,8 +1840,10 @@
     });
 
     resizeCanvasForViewport();
+    initializeUserCount();
     initializeSaves();
     updateSkinButtons();
+    updateFruitButtons();
     drawBlueSnakePreview(tailPreviewCtx3, tailPreviewCanvas3, "#d64545");
     drawBlueSnakePreview(tailPreviewCtx, tailPreviewCanvas, "#3f88d1");
     drawBlueSnakePreview(tailPreviewCtx4, tailPreviewCanvas4, "#e68a2e");
@@ -1707,3 +1889,14 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
